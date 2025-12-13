@@ -1,52 +1,62 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { login } from "@/lib/auth"
-import { useAuth } from "@/components/auth-provider"
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { login } from "@/lib/auth";
+import { useAuth } from "@/components/auth-provider";
 
 export default function LoginPage() {
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [error, setError] = React.useState("")
-  const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
-  const { setIsLoggedIn } = useAuth()
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     // Simulate loading delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const success = login(email, password)
+    const success = login(email, password);
     if (success) {
-      setIsLoggedIn(true)
-      router.push("/")
+      setIsLoggedIn(true);
+      router.push("/");
     } else {
-      setError("Invalid email or password")
+      setError("Invalid email or password");
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-primary/5 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-              <span className="text-2xl font-bold text-primary-foreground">B</span>
+              <span className="text-2xl font-bold text-primary-foreground">
+                B
+              </span>
             </div>
-            <span className="text-2xl font-bold text-foreground">BizGrow360</span>
+            <span className="text-2xl font-bold text-foreground">
+              BizGrow360
+            </span>
           </div>
           <p className="text-muted-foreground">Super Admin Dashboard</p>
         </div>
@@ -95,12 +105,20 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+              {error && (
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
@@ -116,7 +134,9 @@ export default function LoginPage() {
 
             {/* Demo credentials hint */}
             <div className="mt-6 rounded-lg bg-muted/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Demo Credentials:</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                Demo Credentials:
+              </p>
               <div className="space-y-1 text-xs text-muted-foreground font-mono">
                 <p>Email: admin@bizgrow360.com</p>
                 <p>Password: admin123</p>
@@ -125,8 +145,10 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">© 2025 BizGrow360. All rights reserved.</p>
+        <p className="text-center text-xs text-muted-foreground">
+          © 2025 BizGrow360. All rights reserved.
+        </p>
       </div>
     </div>
-  )
+  );
 }

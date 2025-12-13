@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Search,
   Filter,
@@ -15,23 +15,48 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-} from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -39,8 +64,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const initialTenants = [
   {
@@ -193,48 +218,54 @@ const initialTenants = [
     revenue: 65780,
     integrations: ["WhatsApp"],
   },
-]
+];
 
-const ITEMS_PER_PAGE = 5
+const ITEMS_PER_PAGE = 5;
 
 export default function TenantsPage() {
-  const [tenants, setTenants] = React.useState(initialTenants)
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [statusFilter, setStatusFilter] = React.useState("all")
-  const [planFilter, setPlanFilter] = React.useState("all")
-  const [selectedTenant, setSelectedTenant] = React.useState<(typeof tenants)[0] | null>(null)
-  const [drawerOpen, setDrawerOpen] = React.useState(false)
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [addTenantOpen, setAddTenantOpen] = React.useState(false)
+  const [tenants, setTenants] = React.useState(initialTenants);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [planFilter, setPlanFilter] = React.useState("all");
+  const [selectedTenant, setSelectedTenant] = React.useState<
+    (typeof tenants)[0] | null
+  >(null);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [addTenantOpen, setAddTenantOpen] = React.useState(false);
   const [newTenant, setNewTenant] = React.useState({
     name: "",
     email: "",
     plan: "Starter",
     status: "trial",
-  })
+  });
 
   const filteredTenants = tenants.filter((tenant) => {
     const matchesSearch =
       tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tenant.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || tenant.status === statusFilter
-    const matchesPlan = planFilter === "all" || tenant.plan === planFilter
-    return matchesSearch && matchesStatus && matchesPlan
-  })
+      tenant.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || tenant.status === statusFilter;
+    const matchesPlan = planFilter === "all" || tenant.plan === planFilter;
+    return matchesSearch && matchesStatus && matchesPlan;
+  });
 
-  const totalPages = Math.ceil(filteredTenants.length / ITEMS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const paginatedTenants = filteredTenants.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredTenants.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTenants = filteredTenants.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, planFilter])
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, planFilter]);
 
   const openTenantDrawer = (tenant: (typeof tenants)[0]) => {
-    setSelectedTenant(tenant)
-    setDrawerOpen(true)
-  }
+    setSelectedTenant(tenant);
+    setDrawerOpen(true);
+  };
 
   const handleAddTenant = () => {
     const tenant = {
@@ -246,46 +277,58 @@ export default function TenantsPage() {
       users: 1,
       products: 0,
       messagesUsed: 0,
-      messagesLimit: newTenant.plan === "Starter" ? 1000 : newTenant.plan === "Business" ? 5000 : 20000,
+      messagesLimit:
+        newTenant.plan === "Starter"
+          ? 1000
+          : newTenant.plan === "Business"
+          ? 5000
+          : 20000,
       createdAt: new Date().toISOString().split("T")[0],
       lastActive: "Just now",
       revenue: 0,
       integrations: ["WhatsApp"],
-    }
-    setTenants([tenant, ...tenants])
-    setAddTenantOpen(false)
-    setNewTenant({ name: "", email: "", plan: "Starter", status: "trial" })
-  }
+    };
+    setTenants([tenant, ...tenants]);
+    setAddTenantOpen(false);
+    setNewTenant({ name: "", email: "", plan: "Starter", status: "trial" });
+  };
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-      pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+      active:
+        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      pending:
+        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
       trial: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
       suspended: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    }
-    return <Badge className={styles[status] || ""}>{status}</Badge>
-  }
+    };
+    return <Badge className={styles[status] || ""}>{status}</Badge>;
+  };
 
   const getPlanBadge = (plan: string) => {
     const styles: Record<string, string> = {
       Starter: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
       Business: "bg-primary/10 text-primary",
-      Enterprise: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-    }
+      Enterprise:
+        "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    };
     return (
       <Badge variant="outline" className={styles[plan] || ""}>
         {plan}
       </Badge>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Tenant Management</h1>
-          <p className="text-muted-foreground">Manage all registered tenants and their subscriptions</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Tenant Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage all registered tenants and their subscriptions
+          </p>
         </div>
         <Button className="gap-2" onClick={() => setAddTenantOpen(true)}>
           <Plus className="h-4 w-4" />
@@ -308,7 +351,7 @@ export default function TenantsPage() {
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-35">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -321,7 +364,7 @@ export default function TenantsPage() {
                 </SelectContent>
               </Select>
               <Select value={planFilter} onValueChange={setPlanFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-35">
                   <SelectValue placeholder="Plan" />
                 </SelectTrigger>
                 <SelectContent>
@@ -340,7 +383,9 @@ export default function TenantsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">All Tenants</CardTitle>
-          <CardDescription>{filteredTenants.length} tenants found</CardDescription>
+          <CardDescription>
+            {filteredTenants.length} tenants found
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -358,11 +403,19 @@ export default function TenantsPage() {
             </TableHeader>
             <TableBody>
               {paginatedTenants.map((tenant) => (
-                <TableRow key={tenant.id} className="cursor-pointer" onClick={() => openTenantDrawer(tenant)}>
+                <TableRow
+                  key={tenant.id}
+                  className="cursor-pointer"
+                  onClick={() => openTenantDrawer(tenant)}
+                >
                   <TableCell>
                     <div>
-                      <p className="font-medium text-foreground">{tenant.name}</p>
-                      <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                      <p className="font-medium text-foreground">
+                        {tenant.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {tenant.email}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>{getPlanBadge(tenant.plan)}</TableCell>
@@ -372,15 +425,26 @@ export default function TenantsPage() {
                   <TableCell>
                     <div className="space-y-1">
                       <p className="text-sm">
-                        {tenant.messagesUsed.toLocaleString()} / {tenant.messagesLimit.toLocaleString()}
+                        {tenant.messagesUsed.toLocaleString()} /{" "}
+                        {tenant.messagesLimit.toLocaleString()}
                       </p>
-                      <Progress value={(tenant.messagesUsed / tenant.messagesLimit) * 100} className="h-1.5" />
+                      <Progress
+                        value={
+                          (tenant.messagesUsed / tenant.messagesLimit) * 100
+                        }
+                        className="h-1.5"
+                      />
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{tenant.lastActive}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {tenant.lastActive}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -388,8 +452,8 @@ export default function TenantsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation()
-                            openTenantDrawer(tenant)
+                            e.stopPropagation();
+                            openTenantDrawer(tenant);
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" />
@@ -400,7 +464,10 @@ export default function TenantsPage() {
                           Edit Tenant
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -415,8 +482,9 @@ export default function TenantsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(startIndex + ITEMS_PER_PAGE, filteredTenants.length)} of{" "}
-                {filteredTenants.length} tenants
+                Showing {startIndex + 1} to{" "}
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredTenants.length)}{" "}
+                of {filteredTenants.length} tenants
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -430,22 +498,26 @@ export default function TenantsPage() {
                   Previous
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className={currentPage !== page ? "bg-transparent" : ""}
-                    >
-                      {page}
-                    </Button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={currentPage !== page ? "bg-transparent" : ""}
+                      >
+                        {page}
+                      </Button>
+                    )
+                  )}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="bg-transparent"
                 >
@@ -466,7 +538,9 @@ export default function TenantsPage() {
               <SheetHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <SheetTitle className="text-xl">{selectedTenant.name}</SheetTitle>
+                    <SheetTitle className="text-xl">
+                      {selectedTenant.name}
+                    </SheetTitle>
                     <SheetDescription>{selectedTenant.email}</SheetDescription>
                   </div>
                   {getStatusBadge(selectedTenant.status)}
@@ -489,8 +563,12 @@ export default function TenantsPage() {
                             <Users className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{selectedTenant.users}</p>
-                            <p className="text-xs text-muted-foreground">Users</p>
+                            <p className="text-2xl font-bold">
+                              {selectedTenant.users}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Users
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -502,8 +580,12 @@ export default function TenantsPage() {
                             <Package className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{selectedTenant.products}</p>
-                            <p className="text-xs text-muted-foreground">Products</p>
+                            <p className="text-2xl font-bold">
+                              {selectedTenant.products}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Products
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -514,21 +596,31 @@ export default function TenantsPage() {
                     <CardContent className="p-4 space-y-3">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Plan</span>
-                        <span className="font-medium">{selectedTenant.plan}</span>
+                        <span className="font-medium">
+                          {selectedTenant.plan}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Revenue</span>
+                        <span className="text-muted-foreground">
+                          Total Revenue
+                        </span>
                         <span className="font-medium text-green-600 dark:text-green-400">
                           ₹{selectedTenant.revenue.toLocaleString("en-IN")}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Created</span>
-                        <span className="font-medium">{selectedTenant.createdAt}</span>
+                        <span className="font-medium">
+                          {selectedTenant.createdAt}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Last Active</span>
-                        <span className="font-medium">{selectedTenant.lastActive}</span>
+                        <span className="text-muted-foreground">
+                          Last Active
+                        </span>
+                        <span className="font-medium">
+                          {selectedTenant.lastActive}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -545,16 +637,29 @@ export default function TenantsPage() {
                     <CardContent>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>{selectedTenant.messagesUsed.toLocaleString()} used</span>
-                          <span>{selectedTenant.messagesLimit.toLocaleString()} limit</span>
+                          <span>
+                            {selectedTenant.messagesUsed.toLocaleString()} used
+                          </span>
+                          <span>
+                            {selectedTenant.messagesLimit.toLocaleString()}{" "}
+                            limit
+                          </span>
                         </div>
                         <Progress
-                          value={(selectedTenant.messagesUsed / selectedTenant.messagesLimit) * 100}
+                          value={
+                            (selectedTenant.messagesUsed /
+                              selectedTenant.messagesLimit) *
+                            100
+                          }
                           className="h-2"
                         />
                         <p className="text-xs text-muted-foreground">
-                          {Math.round((selectedTenant.messagesUsed / selectedTenant.messagesLimit) * 100)}% of monthly
-                          quota used
+                          {Math.round(
+                            (selectedTenant.messagesUsed /
+                              selectedTenant.messagesLimit) *
+                              100
+                          )}
+                          % of monthly quota used
                         </p>
                       </div>
                     </CardContent>
@@ -569,11 +674,15 @@ export default function TenantsPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Orders This Month</span>
+                        <span className="text-muted-foreground">
+                          Orders This Month
+                        </span>
                         <span className="font-medium">128</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Invoices Generated</span>
+                        <span className="text-muted-foreground">
+                          Invoices Generated
+                        </span>
                         <span className="font-medium">98</span>
                       </div>
                       <div className="flex justify-between text-sm">
@@ -587,12 +696,18 @@ export default function TenantsPage() {
                 <TabsContent value="integrations" className="space-y-4 mt-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Active Integrations</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Active Integrations
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
                         {selectedTenant.integrations.map((integration) => (
-                          <Badge key={integration} variant="secondary" className="px-3 py-1">
+                          <Badge
+                            key={integration}
+                            variant="secondary"
+                            className="px-3 py-1"
+                          >
                             {integration}
                           </Badge>
                         ))}
@@ -617,7 +732,9 @@ export default function TenantsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Tenant</DialogTitle>
-            <DialogDescription>Create a new tenant account for the platform.</DialogDescription>
+            <DialogDescription>
+              Create a new tenant account for the platform.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -627,7 +744,9 @@ export default function TenantsPage() {
                 id="tenant-name"
                 placeholder="Enter business name"
                 value={newTenant.name}
-                onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
+                onChange={(e) =>
+                  setNewTenant({ ...newTenant, name: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -637,25 +756,41 @@ export default function TenantsPage() {
                 type="email"
                 placeholder="admin@business.com"
                 value={newTenant.email}
-                onChange={(e) => setNewTenant({ ...newTenant, email: e.target.value })}
+                onChange={(e) =>
+                  setNewTenant({ ...newTenant, email: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="tenant-plan">Subscription Plan</Label>
-              <Select value={newTenant.plan} onValueChange={(value) => setNewTenant({ ...newTenant, plan: value })}>
+              <Select
+                value={newTenant.plan}
+                onValueChange={(value) =>
+                  setNewTenant({ ...newTenant, plan: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a plan" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Starter">Starter - ₹8,217/mo</SelectItem>
-                  <SelectItem value="Business">Business - ₹24,817/mo</SelectItem>
-                  <SelectItem value="Enterprise">Enterprise - ₹49,717/mo</SelectItem>
+                  <SelectItem value="Business">
+                    Business - ₹24,817/mo
+                  </SelectItem>
+                  <SelectItem value="Enterprise">
+                    Enterprise - ₹49,717/mo
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="tenant-status">Initial Status</Label>
-              <Select value={newTenant.status} onValueChange={(value) => setNewTenant({ ...newTenant, status: value })}>
+              <Select
+                value={newTenant.status}
+                onValueChange={(value) =>
+                  setNewTenant({ ...newTenant, status: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -669,15 +804,22 @@ export default function TenantsPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddTenantOpen(false)} className="bg-transparent">
+            <Button
+              variant="outline"
+              onClick={() => setAddTenantOpen(false)}
+              className="bg-transparent"
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddTenant} disabled={!newTenant.name || !newTenant.email}>
+            <Button
+              onClick={handleAddTenant}
+              disabled={!newTenant.name || !newTenant.email}
+            >
               Add Tenant
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
