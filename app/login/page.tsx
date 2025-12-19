@@ -13,8 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { login } from "@/lib/auth";
+import { authService, getErrorMessage } from "@/service";
 import { useAuth } from "@/components/auth-provider";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = React.useState("");
@@ -30,17 +31,30 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // Simulate loading delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const response = await authService.adminLogin({ email, password });
 
-    const success = login(email, password);
-    if (success) {
-      setIsLoggedIn(true);
-      router.push("/");
-    } else {
-      setError("Invalid email or password");
+      if (response.success) {
+        setIsLoggedIn(true);
+        toast.success("Welcome back!", {
+          description: "You have successfully logged in.",
+        });
+        router.push("/");
+      } else {
+        setError(response.message || "Invalid email or password");
+        toast.error("Login failed", {
+          description: response.message || "Invalid email or password",
+        });
+      }
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error("Login failed", {
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -131,17 +145,6 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
-
-            {/* Demo credentials hint */}
-            <div className="mt-6 rounded-lg bg-muted/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                Demo Credentials:
-              </p>
-              <div className="space-y-1 text-xs text-muted-foreground font-mono">
-                <p>Email: admin@bizgrow360.com</p>
-                <p>Password: admin123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

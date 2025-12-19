@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -66,231 +68,130 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useTenants,
+  useTenant,
+  tenantService,
+  getErrorMessage,
+  type TenantData,
+} from "@/service";
+import { toast } from "sonner";
+import { formatDistanceToNow, format } from "date-fns";
 
-const initialTenants = [
-  {
-    id: "1",
-    name: "TechCorp Ltd",
-    email: "admin@techcorp.com",
-    plan: "Business",
-    status: "active",
-    users: 24,
-    products: 156,
-    messagesUsed: 4250,
-    messagesLimit: 5000,
-    createdAt: "2024-01-15",
-    lastActive: "2 hours ago",
-    revenue: 248004,
-    integrations: ["WhatsApp", "SMS", "Email"],
-  },
-  {
-    id: "2",
-    name: "RetailPro Store",
-    email: "hello@retailpro.com",
-    plan: "Starter",
-    status: "active",
-    users: 5,
-    products: 42,
-    messagesUsed: 890,
-    messagesLimit: 1000,
-    createdAt: "2024-02-20",
-    lastActive: "5 hours ago",
-    revenue: 98604,
-    integrations: ["WhatsApp"],
-  },
-  {
-    id: "3",
-    name: "FoodMart Express",
-    email: "ops@foodmart.com",
-    plan: "Enterprise",
-    status: "active",
-    users: 52,
-    products: 890,
-    messagesUsed: 18500,
-    messagesLimit: 20000,
-    createdAt: "2023-11-08",
-    lastActive: "1 hour ago",
-    revenue: 596604,
-    integrations: ["WhatsApp", "SMS", "Email", "API"],
-  },
-  {
-    id: "4",
-    name: "StyleHub Fashion",
-    email: "contact@stylehub.com",
-    plan: "Business",
-    status: "pending",
-    users: 12,
-    products: 234,
-    messagesUsed: 2100,
-    messagesLimit: 5000,
-    createdAt: "2024-03-01",
-    lastActive: "1 day ago",
-    revenue: 124002,
-    integrations: ["WhatsApp", "Email"],
-  },
-  {
-    id: "5",
-    name: "AutoParts Plus",
-    email: "info@autoparts.com",
-    plan: "Starter",
-    status: "trial",
-    users: 3,
-    products: 28,
-    messagesUsed: 150,
-    messagesLimit: 500,
-    createdAt: "2024-03-10",
-    lastActive: "3 days ago",
-    revenue: 0,
-    integrations: ["WhatsApp"],
-  },
-  {
-    id: "6",
-    name: "MediCare Plus",
-    email: "admin@medicare.com",
-    plan: "Enterprise",
-    status: "active",
-    users: 38,
-    products: 520,
-    messagesUsed: 12400,
-    messagesLimit: 20000,
-    createdAt: "2023-09-22",
-    lastActive: "30 mins ago",
-    revenue: 596604,
-    integrations: ["WhatsApp", "SMS", "Email", "API"],
-  },
-  {
-    id: "7",
-    name: "Global Imports",
-    email: "trade@globalimports.com",
-    plan: "Business",
-    status: "suspended",
-    users: 8,
-    products: 89,
-    messagesUsed: 0,
-    messagesLimit: 5000,
-    createdAt: "2024-01-28",
-    lastActive: "2 weeks ago",
-    revenue: 49634,
-    integrations: ["WhatsApp", "Email"],
-  },
-  {
-    id: "8",
-    name: "Quick Grocers",
-    email: "support@quickgrocers.com",
-    plan: "Starter",
-    status: "active",
-    users: 6,
-    products: 78,
-    messagesUsed: 650,
-    messagesLimit: 1000,
-    createdAt: "2024-02-05",
-    lastActive: "4 hours ago",
-    revenue: 82170,
-    integrations: ["WhatsApp"],
-  },
-  {
-    id: "9",
-    name: "Urban Electronics",
-    email: "info@urbanelectronics.com",
-    plan: "Business",
-    status: "active",
-    users: 18,
-    products: 320,
-    messagesUsed: 3200,
-    messagesLimit: 5000,
-    createdAt: "2024-01-10",
-    lastActive: "1 hour ago",
-    revenue: 248004,
-    integrations: ["WhatsApp", "SMS"],
-  },
-  {
-    id: "10",
-    name: "Fitness Zone",
-    email: "hello@fitnesszone.com",
-    plan: "Starter",
-    status: "active",
-    users: 4,
-    products: 35,
-    messagesUsed: 420,
-    messagesLimit: 1000,
-    createdAt: "2024-03-05",
-    lastActive: "6 hours ago",
-    revenue: 65780,
-    integrations: ["WhatsApp"],
-  },
-];
-
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export default function TenantsPage() {
-  const [tenants, setTenants] = React.useState(initialTenants);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [planFilter, setPlanFilter] = React.useState("all");
-  const [selectedTenant, setSelectedTenant] = React.useState<
-    (typeof tenants)[0] | null
-  >(null);
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [selectedTenantId, setSelectedTenantId] = React.useState<string | null>(
+    null
+  );
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+  // Fetch full tenant details when selected
+  const { tenant: selectedTenant, isLoading: tenantLoading } =
+    useTenant(selectedTenantId);
   const [addTenantOpen, setAddTenantOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [newTenant, setNewTenant] = React.useState({
     name: "",
     email: "",
-    plan: "Starter",
+    phone: "",
+    plan: "basic",
     status: "trial",
+    business_type: "",
   });
 
-  const filteredTenants = tenants.filter((tenant) => {
-    const matchesSearch =
-      tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tenant.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || tenant.status === statusFilter;
-    const matchesPlan = planFilter === "all" || tenant.plan === planFilter;
-    return matchesSearch && matchesStatus && matchesPlan;
-  });
+  // Debounce search query
+  const [debouncedSearch, setDebouncedSearch] = React.useState(searchQuery);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const totalPages = Math.ceil(filteredTenants.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedTenants = filteredTenants.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
-  // Reset to page 1 when filters change
+  // Reset page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, planFilter]);
+  }, [debouncedSearch, statusFilter, planFilter]);
 
-  const openTenantDrawer = (tenant: (typeof tenants)[0]) => {
-    setSelectedTenant(tenant);
+  // Fetch tenants with SWR
+  const { tenants, pagination, isLoading, isError, mutate } = useTenants({
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    plan: planFilter !== "all" ? planFilter : undefined,
+    search: debouncedSearch || undefined,
+  });
+
+  const totalPages = pagination?.pages || 1;
+
+  const handleRefresh = () => {
+    mutate();
+    toast.success("Data refreshed");
+  };
+
+  const openTenantDrawer = (tenant: TenantData) => {
+    setSelectedTenantId(tenant._id || tenant.id);
     setDrawerOpen(true);
   };
 
-  const handleAddTenant = () => {
-    const tenant = {
-      id: String(tenants.length + 1),
-      name: newTenant.name,
-      email: newTenant.email,
-      plan: newTenant.plan,
-      status: newTenant.status,
-      users: 1,
-      products: 0,
-      messagesUsed: 0,
-      messagesLimit:
-        newTenant.plan === "Starter"
-          ? 1000
-          : newTenant.plan === "Business"
-          ? 5000
-          : 20000,
-      createdAt: new Date().toISOString().split("T")[0],
-      lastActive: "Just now",
-      revenue: 0,
-      integrations: ["WhatsApp"],
-    };
-    setTenants([tenant, ...tenants]);
-    setAddTenantOpen(false);
-    setNewTenant({ name: "", email: "", plan: "Starter", status: "trial" });
+  const handleStatusChange = async (
+    tenantId: string,
+    newStatus: "active" | "suspended"
+  ) => {
+    try {
+      await tenantService.updateTenantStatus(tenantId, { status: newStatus });
+      toast.success(
+        `Tenant ${
+          newStatus === "active" ? "activated" : "suspended"
+        } successfully`
+      );
+      mutate();
+    } catch (error) {
+      toast.error("Failed to update status", {
+        description: getErrorMessage(error),
+      });
+    }
+  };
+
+  const handleAddTenant = async () => {
+    if (!newTenant.name || !newTenant.email) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await tenantService.createTenant({
+        name: newTenant.name,
+        email: newTenant.email,
+        phone: newTenant.phone,
+        ownerName: newTenant.name,
+        ownerPhone: newTenant.phone,
+        ownerEmail: newTenant.email,
+        planId: newTenant.plan,
+      });
+      toast.success("Tenant created successfully");
+      setAddTenantOpen(false);
+      setNewTenant({
+        name: "",
+        email: "",
+        phone: "",
+        plan: "basic",
+        status: "trial",
+        business_type: "",
+      });
+      mutate();
+    } catch (error) {
+      toast.error("Failed to create tenant", {
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -305,20 +206,48 @@ export default function TenantsPage() {
     return <Badge className={styles[status] || ""}>{status}</Badge>;
   };
 
-  const getPlanBadge = (plan: string) => {
+  const getPlanBadge = (planId?: string) => {
+    const planNames: Record<string, string> = {
+      free: "Free",
+      basic: "Basic",
+      pro: "Pro",
+      enterprise: "Enterprise",
+    };
     const styles: Record<string, string> = {
-      Starter: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-      Business: "bg-primary/10 text-primary",
-      Enterprise:
+      free: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+      basic: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+      pro: "bg-primary/10 text-primary",
+      enterprise:
         "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
     };
+    const plan = planId || "free";
     return (
-      <Badge variant="outline" className={styles[plan] || ""}>
-        {plan}
+      <Badge variant="outline" className={styles[plan] || styles.free}>
+        {planNames[plan] || plan}
       </Badge>
     );
   };
 
+  // Table skeleton
+  const TableSkeleton = () => (
+    <div className="space-y-3">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex justify-between items-center py-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-4 w-8" />
+          <Skeleton className="h-4 w-8" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-8" />
+        </div>
+      ))}
+    </div>
+  );
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -330,10 +259,21 @@ export default function TenantsPage() {
             Manage all registered tenants and their subscriptions
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setAddTenantOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Tenant
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Button className="gap-2" onClick={() => setAddTenantOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Tenant
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -369,9 +309,10 @@ export default function TenantsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Plans</SelectItem>
-                  <SelectItem value="Starter">Starter</SelectItem>
-                  <SelectItem value="Business">Business</SelectItem>
-                  <SelectItem value="Enterprise">Enterprise</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="enterprise">Enterprise</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -384,107 +325,151 @@ export default function TenantsPage() {
         <CardHeader>
           <CardTitle className="text-foreground">All Tenants</CardTitle>
           <CardDescription>
-            {filteredTenants.length} tenants found
+            {pagination?.total || 0} tenants found
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead>Products</TableHead>
-                <TableHead>Messages</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedTenants.map((tenant) => (
-                <TableRow
-                  key={tenant.id}
-                  className="cursor-pointer"
-                  onClick={() => openTenantDrawer(tenant)}
-                >
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {tenant.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {tenant.email}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getPlanBadge(tenant.plan)}</TableCell>
-                  <TableCell>{getStatusBadge(tenant.status)}</TableCell>
-                  <TableCell>{tenant.users}</TableCell>
-                  <TableCell>{tenant.products}</TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="text-sm">
-                        {tenant.messagesUsed.toLocaleString()} /{" "}
-                        {tenant.messagesLimit.toLocaleString()}
-                      </p>
-                      <Progress
-                        value={
-                          (tenant.messagesUsed / tenant.messagesLimit) * 100
-                        }
-                        className="h-1.5"
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {tenant.lastActive}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openTenantDrawer(tenant);
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Tenant
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
+          {isLoading ? (
+            <TableSkeleton />
+          ) : isError ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Failed to load tenants. Please try again.</p>
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                className="mt-4"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : tenants.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No tenants found matching your criteria.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tenant</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tenants.map((tenant) => (
+                  <TableRow
+                    key={tenant._id || tenant.id}
+                    className="cursor-pointer"
+                    onClick={() => openTenantDrawer(tenant)}
+                  >
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {tenant.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {tenant.email || tenant.business_email}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getPlanBadge(
+                        tenant.plan || tenant.subscription?.plan_id
+                      )}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(tenant.status)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {tenant.address?.city || tenant.business_type || "N/A"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {tenant.created_at
+                        ? formatDistanceToNow(new Date(tenant.created_at), {
+                            addSuffix: true,
+                          })
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openTenantDrawer(tenant);
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Tenant
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {tenant.status === "active" ? (
+                            <DropdownMenuItem
+                              className="text-yellow-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(
+                                  tenant._id || tenant.id,
+                                  "suspended"
+                                );
+                              }}
+                            >
+                              Suspend Tenant
+                            </DropdownMenuItem>
+                          ) : tenant.status === "suspended" ? (
+                            <DropdownMenuItem
+                              className="text-green-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(
+                                  tenant._id || tenant.id,
+                                  "active"
+                                );
+                              }}
+                            >
+                              Activate Tenant
+                            </DropdownMenuItem>
+                          ) : null}
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to{" "}
-                {Math.min(startIndex + ITEMS_PER_PAGE, filteredTenants.length)}{" "}
-                of {filteredTenants.length} tenants
+                Page {currentPage} of {totalPages} ({pagination?.total || 0}{" "}
+                tenants)
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -497,21 +482,6 @@ export default function TenantsPage() {
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className={currentPage !== page ? "bg-transparent" : ""}
-                      >
-                        {page}
-                      </Button>
-                    )
-                  )}
-                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -531,27 +501,49 @@ export default function TenantsPage() {
       </Card>
 
       {/* Tenant Detail Drawer */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          {selectedTenant && (
+      <Sheet
+        open={drawerOpen}
+        onOpenChange={(open) => {
+          setDrawerOpen(open);
+          if (!open) setSelectedTenantId(null);
+        }}
+      >
+        <SheetContent
+          className="w-full sm:max-w-lg overflow-y-auto"
+          aria-describedby={undefined}
+        >
+          {tenantLoading ? (
             <>
               <SheetHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <SheetTitle className="text-xl">
-                      {selectedTenant.name}
-                    </SheetTitle>
-                    <SheetDescription>{selectedTenant.email}</SheetDescription>
-                  </div>
-                  {getStatusBadge(selectedTenant.status)}
+                <SheetTitle>Loading tenant...</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-4 p-4">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  <Skeleton className="h-24" />
+                  <Skeleton className="h-24" />
+                </div>
+                <Skeleton className="h-32" />
+              </div>
+            </>
+          ) : selectedTenant ? (
+            <>
+              <SheetHeader className="border-none">
+                <div>
+                  <SheetTitle className="text-xl">
+                    {selectedTenant.name}
+                  </SheetTitle>
+                  <SheetDescription>
+                    {selectedTenant.email || selectedTenant.business_email}
+                  </SheetDescription>
                 </div>
               </SheetHeader>
 
               <Tabs defaultValue="overview" className="mt-6">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="usage">Usage</TabsTrigger>
-                  <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4 mt-4">
@@ -564,10 +556,12 @@ export default function TenantsPage() {
                           </div>
                           <div>
                             <p className="text-2xl font-bold">
-                              {selectedTenant.users}
+                              {selectedTenant.address?.city ||
+                                selectedTenant.business_type ||
+                                "N/A"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Users
+                              Location
                             </p>
                           </div>
                         </div>
@@ -580,11 +574,13 @@ export default function TenantsPage() {
                             <Package className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">
-                              {selectedTenant.products}
+                            <p className="text-2xl font-bold capitalize">
+                              {selectedTenant.plan ||
+                                selectedTenant.subscription?.plan_id ||
+                                "Free"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Products
+                              Current Plan
                             </p>
                           </div>
                         </div>
@@ -594,74 +590,92 @@ export default function TenantsPage() {
 
                   <Card>
                     <CardContent className="p-4 space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Plan</span>
-                        <span className="font-medium">
-                          {selectedTenant.plan}
-                        </span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Status</span>
+                        {getStatusBadge(
+                          selectedTenant?.is_active ? "active" : "suspended"
+                        )}
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Total Revenue
-                        </span>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          ₹{selectedTenant.revenue.toLocaleString("en-IN")}
+                        <span className="text-muted-foreground">Phone</span>
+                        <span className="font-medium">
+                          {selectedTenant.phone ||
+                            selectedTenant.business_phone ||
+                            "N/A"}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Created</span>
                         <span className="font-medium">
-                          {selectedTenant.createdAt}
+                          {selectedTenant.created_at
+                            ? format(new Date(selectedTenant.created_at), "PPP")
+                            : "N/A"}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
-                          Last Active
+                          Last Updated
                         </span>
                         <span className="font-medium">
-                          {selectedTenant.lastActive}
+                          {selectedTenant.updated_at
+                            ? formatDistanceToNow(
+                                new Date(selectedTenant.updated_at),
+                                { addSuffix: true }
+                              )
+                            : "N/A"}
                         </span>
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="usage" className="space-y-4 mt-4">
+                <TabsContent value="details" className="space-y-4 mt-4">
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <MessageSquare className="h-4 w-4" />
-                        WhatsApp Messages
+                        Subscription Details
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Plan</span>
+                        <span className="font-medium capitalize">
+                          {selectedTenant.subscription?.plan_id || "Free"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Status</span>
+                        <span className="font-medium capitalize">
+                          {selectedTenant.subscription?.status || "Inactive"}
+                        </span>
+                      </div>
+                      {selectedTenant.subscription?.start_date && (
                         <div className="flex justify-between text-sm">
-                          <span>
-                            {selectedTenant.messagesUsed.toLocaleString()} used
+                          <span className="text-muted-foreground">
+                            Start Date
                           </span>
-                          <span>
-                            {selectedTenant.messagesLimit.toLocaleString()}{" "}
-                            limit
+                          <span className="font-medium">
+                            {format(
+                              new Date(selectedTenant.subscription.start_date),
+                              "PPP"
+                            )}
                           </span>
                         </div>
-                        <Progress
-                          value={
-                            (selectedTenant.messagesUsed /
-                              selectedTenant.messagesLimit) *
-                            100
-                          }
-                          className="h-2"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {Math.round(
-                            (selectedTenant.messagesUsed /
-                              selectedTenant.messagesLimit) *
-                              100
-                          )}
-                          % of monthly quota used
-                        </p>
-                      </div>
+                      )}
+                      {selectedTenant.subscription?.end_date && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            End Date
+                          </span>
+                          <span className="font-medium">
+                            {format(
+                              new Date(selectedTenant.subscription.end_date),
+                              "PPP"
+                            )}
+                          </span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -669,62 +683,65 @@ export default function TenantsPage() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        Activity Summary
+                        Business Address
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Orders This Month
-                        </span>
-                        <span className="font-medium">128</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Invoices Generated
-                        </span>
-                        <span className="font-medium">98</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">API Calls</span>
-                        <span className="font-medium">12,450</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="integrations" className="space-y-4 mt-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Active Integrations
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedTenant.integrations.map((integration) => (
-                          <Badge
-                            key={integration}
-                            variant="secondary"
-                            className="px-3 py-1"
-                          >
-                            {integration}
-                          </Badge>
-                        ))}
-                      </div>
+                      {selectedTenant.address ? (
+                        <div className="text-sm space-y-1">
+                          {selectedTenant.address.street && (
+                            <p>{selectedTenant.address.street}</p>
+                          )}
+                          <p>
+                            {[
+                              selectedTenant.address.city,
+                              selectedTenant.address.state,
+                              selectedTenant.address.pincode,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                          {selectedTenant.address.country && (
+                            <p>{selectedTenant.address.country}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No address provided
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
 
                   <div className="flex gap-2 pt-4">
                     <Button className="flex-1">Edit Tenant</Button>
-                    <Button variant="outline" className="flex-1 bg-transparent">
-                      View Full Profile
+                    <Button
+                      variant="outline"
+                      className="flex-1 bg-transparent"
+                      onClick={() => {
+                        if (selectedTenant.status === "active") {
+                          handleStatusChange(
+                            selectedTenant._id || selectedTenant.id,
+                            "suspended"
+                          );
+                        } else {
+                          handleStatusChange(
+                            selectedTenant._id || selectedTenant.id,
+                            "active"
+                          );
+                        }
+                        setDrawerOpen(false);
+                      }}
+                    >
+                      {selectedTenant.status === "active"
+                        ? "Suspend"
+                        : "Activate"}
                     </Button>
                   </div>
                 </TabsContent>
               </Tabs>
             </>
-          )}
+          ) : null}
         </SheetContent>
       </Sheet>
 
@@ -762,6 +779,29 @@ export default function TenantsPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="tenant-phone">Phone Number</Label>
+              <Input
+                id="tenant-phone"
+                type="tel"
+                placeholder="+91 9876543210"
+                value={newTenant.phone}
+                onChange={(e) =>
+                  setNewTenant({ ...newTenant, phone: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tenant-type">Business Type</Label>
+              <Input
+                id="tenant-type"
+                placeholder="e.g., Retail, Restaurant, etc."
+                value={newTenant.business_type}
+                onChange={(e) =>
+                  setNewTenant({ ...newTenant, business_type: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="tenant-plan">Subscription Plan</Label>
               <Select
                 value={newTenant.plan}
@@ -773,31 +813,12 @@ export default function TenantsPage() {
                   <SelectValue placeholder="Select a plan" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Starter">Starter - ₹8,217/mo</SelectItem>
-                  <SelectItem value="Business">
-                    Business - ₹24,817/mo
-                  </SelectItem>
-                  <SelectItem value="Enterprise">
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="basic">Basic - ₹8,217/mo</SelectItem>
+                  <SelectItem value="pro">Pro - ₹24,817/mo</SelectItem>
+                  <SelectItem value="enterprise">
                     Enterprise - ₹49,717/mo
                   </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tenant-status">Initial Status</Label>
-              <Select
-                value={newTenant.status}
-                onValueChange={(value) =>
-                  setNewTenant({ ...newTenant, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trial">Trial</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -813,9 +834,16 @@ export default function TenantsPage() {
             </Button>
             <Button
               onClick={handleAddTenant}
-              disabled={!newTenant.name || !newTenant.email}
+              disabled={!newTenant.name || !newTenant.email || isSubmitting}
             >
-              Add Tenant
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Tenant"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

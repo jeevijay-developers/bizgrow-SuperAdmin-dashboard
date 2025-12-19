@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Users,
   Search,
@@ -18,20 +18,41 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-} from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -39,238 +60,142 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { formatDistanceToNow, format } from "date-fns";
+import { useUsers, UserData } from "@/service/hooks";
+import { userService } from "@/service";
 
-const initialUsers = [
-  {
-    id: "1",
-    name: "John Smith",
-    email: "john@techcorp.com",
-    phone: "+91 98765 43210",
-    tenant: "TechCorp Ltd",
-    role: "Owner",
-    status: "active",
-    lastLogin: "2 hours ago",
-    createdAt: "2024-01-15",
-    avatar: "",
-    ordersProcessed: 245,
-    invoicesCreated: 189,
-  },
-  {
-    id: "2",
-    name: "Sarah Johnson",
-    email: "sarah@techcorp.com",
-    phone: "+91 98765 43211",
-    tenant: "TechCorp Ltd",
-    role: "Manager",
-    status: "active",
-    lastLogin: "5 hours ago",
-    createdAt: "2024-01-20",
-    avatar: "",
-    ordersProcessed: 156,
-    invoicesCreated: 98,
-  },
-  {
-    id: "3",
-    name: "Mike Davis",
-    email: "mike@retailpro.com",
-    phone: "+91 98765 43212",
-    tenant: "RetailPro Store",
-    role: "Owner",
-    status: "active",
-    lastLogin: "1 day ago",
-    createdAt: "2024-02-20",
-    avatar: "",
-    ordersProcessed: 89,
-    invoicesCreated: 67,
-  },
-  {
-    id: "4",
-    name: "Emily Chen",
-    email: "emily@foodmart.com",
-    phone: "+91 98765 43213",
-    tenant: "FoodMart Express",
-    role: "Owner",
-    status: "active",
-    lastLogin: "30 mins ago",
-    createdAt: "2023-11-08",
-    avatar: "",
-    ordersProcessed: 512,
-    invoicesCreated: 423,
-  },
-  {
-    id: "5",
-    name: "David Wilson",
-    email: "david@foodmart.com",
-    phone: "+91 98765 43214",
-    tenant: "FoodMart Express",
-    role: "Staff",
-    status: "active",
-    lastLogin: "3 hours ago",
-    createdAt: "2023-12-15",
-    avatar: "",
-    ordersProcessed: 198,
-    invoicesCreated: 145,
-  },
-  {
-    id: "6",
-    name: "Lisa Brown",
-    email: "lisa@stylehub.com",
-    phone: "+91 98765 43215",
-    tenant: "StyleHub Fashion",
-    role: "Owner",
-    status: "pending",
-    lastLogin: "Never",
-    createdAt: "2024-03-01",
-    avatar: "",
-    ordersProcessed: 0,
-    invoicesCreated: 0,
-  },
-  {
-    id: "7",
-    name: "James Miller",
-    email: "james@autoparts.com",
-    phone: "+91 98765 43216",
-    tenant: "AutoParts Plus",
-    role: "Owner",
-    status: "inactive",
-    lastLogin: "2 weeks ago",
-    createdAt: "2024-03-10",
-    avatar: "",
-    ordersProcessed: 23,
-    invoicesCreated: 18,
-  },
-  {
-    id: "8",
-    name: "Anna Taylor",
-    email: "anna@medicare.com",
-    phone: "+91 98765 43217",
-    tenant: "MediCare Plus",
-    role: "Owner",
-    status: "active",
-    lastLogin: "1 hour ago",
-    createdAt: "2023-09-22",
-    avatar: "",
-    ordersProcessed: 387,
-    invoicesCreated: 312,
-  },
-  {
-    id: "9",
-    name: "Raj Patel",
-    email: "raj@quickgrocers.com",
-    phone: "+91 98765 43218",
-    tenant: "Quick Grocers",
-    role: "Owner",
-    status: "active",
-    lastLogin: "4 hours ago",
-    createdAt: "2024-02-05",
-    avatar: "",
-    ordersProcessed: 156,
-    invoicesCreated: 134,
-  },
-  {
-    id: "10",
-    name: "Priya Sharma",
-    email: "priya@fitnesszone.com",
-    phone: "+91 98765 43219",
-    tenant: "Fitness Zone",
-    role: "Owner",
-    status: "active",
-    lastLogin: "6 hours ago",
-    createdAt: "2024-03-05",
-    avatar: "",
-    ordersProcessed: 78,
-    invoicesCreated: 65,
-  },
-]
-
-const ITEMS_PER_PAGE = 5
+const ITEMS_PER_PAGE = 10;
 
 export default function UsersPage() {
-  const [users, setUsers] = React.useState(initialUsers)
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [statusFilter, setStatusFilter] = React.useState("all")
-  const [roleFilter, setRoleFilter] = React.useState("all")
-  const [selectedUser, setSelectedUser] = React.useState<(typeof users)[0] | null>(null)
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [addUserOpen, setAddUserOpen] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [roleFilter, setRoleFilter] = React.useState("all");
+  const [selectedUser, setSelectedUser] = React.useState<UserData | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [addUserOpen, setAddUserOpen] = React.useState(false);
+  const [isAddingUser, setIsAddingUser] = React.useState(false);
   const [newUser, setNewUser] = React.useState({
     name: "",
     email: "",
     phone: "",
     tenant: "",
-    role: "Staff",
-  })
+    role: "staff",
+  });
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.tenant.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter
-    const matchesRole = roleFilter === "all" || user.role === roleFilter
-    return matchesSearch && matchesStatus && matchesRole
-  })
-
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-
-  // Reset to page 1 when filters change
+  // Debounce search
   React.useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, statusFilter, roleFilter])
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const openUserDialog = (user: (typeof users)[0]) => {
-    setSelectedUser(user)
-    setDialogOpen(true)
-  }
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, roleFilter]);
 
-  const handleAddUser = () => {
-    const user = {
-      id: String(users.length + 1),
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone,
-      tenant: newUser.tenant,
-      role: newUser.role,
-      status: "active",
-      lastLogin: "Never",
-      createdAt: new Date().toISOString().split("T")[0],
-      avatar: "",
-      ordersProcessed: 0,
-      invoicesCreated: 0,
+  // Fetch users with SWR
+  const { users, pagination, isLoading, isError, mutate } = useUsers({
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    role: roleFilter !== "all" ? roleFilter : undefined,
+    isActive:
+      statusFilter === "active"
+        ? true
+        : statusFilter === "inactive"
+        ? false
+        : undefined,
+    search: debouncedSearch || undefined,
+  });
+
+  const totalPages = pagination?.pages || 1;
+
+  const openUserDialog = (user: UserData) => {
+    setSelectedUser(user);
+    setDialogOpen(true);
+  };
+
+  const handleRefresh = () => {
+    mutate();
+    toast.success("Users list refreshed");
+  };
+
+  const handleStatusChange = async (userId: string, isActive: boolean) => {
+    try {
+      await userService.updateUserStatus(userId, { isActive });
+      mutate();
+      toast.success(
+        `User ${isActive ? "activated" : "deactivated"} successfully`
+      );
+    } catch (error) {
+      toast.error("Failed to update user status");
+      console.error(error);
     }
-    setUsers([user, ...users])
-    setAddUserOpen(false)
-    setNewUser({ name: "", email: "", phone: "", tenant: "", role: "Staff" })
-  }
+  };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-      pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  const handleAddUser = async () => {
+    setIsAddingUser(true);
+    try {
+      await userService.createUser({
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role as "owner" | "admin" | "manager" | "staff",
+        tenantId: newUser.tenant,
+      });
+      mutate();
+      setAddUserOpen(false);
+      setNewUser({ name: "", email: "", phone: "", tenant: "", role: "staff" });
+      toast.success("User added successfully");
+    } catch (error) {
+      toast.error("Failed to add user");
+      console.error(error);
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
+
+  const getStatusBadge = (user: UserData) => {
+    const isActive = user.is_active;
+    const styles = {
+      active:
+        "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
       inactive: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-    }
-    return <Badge className={styles[status] || ""}>{status}</Badge>
-  }
+    };
+    return (
+      <Badge className={isActive ? styles.active : styles.inactive}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    );
+  };
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
-      Owner: "bg-primary/10 text-primary border-primary/20",
-      Manager: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-      Staff: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-    }
+      owner: "bg-primary/10 text-primary border-primary/20",
+      admin:
+        "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+      manager:
+        "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+      staff: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+      super_admin:
+        "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    };
     return (
-      <Badge variant="outline" className={styles[role] || ""}>
-        {role}
+      <Badge variant="outline" className={styles[role] || styles.staff}>
+        {role.replace("_", " ")}
       </Badge>
-    )
-  }
+    );
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -278,23 +203,62 @@ export default function UsersPage() {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-  }
+      .slice(0, 2);
+  };
+
+  const getTenantName = (user: UserData): string => {
+    if (typeof user.tenant_id === "object" && user.tenant_id?.name) {
+      return user.tenant_id.name;
+    }
+    return user.tenant || "N/A";
+  };
 
   // Stats
-  const totalUsers = users.length
-  const activeUsers = users.filter((u) => u.status === "active").length
-  const owners = users.filter((u) => u.role === "Owner").length
+  const totalUsers = pagination?.total || 0;
+  const activeUsers = users.filter((u) => u.is_active).length;
+  const owners = users.filter((u) => u.role === "owner").length;
+
+  // Loading skeleton
+  const TableSkeleton = () => (
+    <div className="space-y-3">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4 p-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-8 w-8" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Store Owners & Users</h1>
-          <p className="text-muted-foreground">Manage users across all tenants</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Store Owners & Users
+          </h1>
+          <p className="text-muted-foreground">
+            Manage users across all tenants
+          </p>
         </div>
         <Button className="gap-2" onClick={() => setAddUserOpen(true)}>
           <Plus className="h-4 w-4" />
           Add User
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
         </Button>
       </div>
 
@@ -363,7 +327,6 @@ export default function UsersPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
@@ -373,9 +336,10 @@ export default function UsersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="Owner">Owner</SelectItem>
-                  <SelectItem value="Manager">Manager</SelectItem>
-                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="owner">Owner</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -387,85 +351,150 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground">All Users</CardTitle>
-          <CardDescription>{filteredUsers.length} users found</CardDescription>
+          <CardDescription>
+            {pagination?.total || 0} users found
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Login</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedUsers.map((user) => (
-                <TableRow key={user.id} className="cursor-pointer" onClick={() => openUserDialog(user)}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span>{user.tenant}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.lastLogin}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openUserDialog(user)
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit User
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
-                          <Ban className="mr-2 h-4 w-4" />
-                          Suspend User
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isLoading ? (
+            <TableSkeleton />
+          ) : isError ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Failed to load users. Please try again.</p>
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                className="mt-4"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No users found matching your criteria.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Tenant</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Last Login</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow
+                    key={user._id || user.id}
+                    className="cursor-pointer"
+                    onClick={() => openUserDialog(user)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage
+                            src={user.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {user.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <span>{getTenantName(user)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getRoleBadge(user.role)}</TableCell>
+                    <TableCell>{getStatusBadge(user)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {user.last_login
+                        ? formatDistanceToNow(new Date(user.last_login), {
+                            addSuffix: true,
+                          })
+                        : "Never"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openUserDialog(user);
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit User
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user.is_active ? (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(user._id || user.id, false);
+                              }}
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
+                              Deactivate User
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="text-green-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(user._id || user.id, true);
+                              }}
+                            >
+                              <UserCheck className="mr-2 h-4 w-4" />
+                              Activate User
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(startIndex + ITEMS_PER_PAGE, filteredUsers.length)} of{" "}
-                {filteredUsers.length} users
+                Page {currentPage} of {totalPages} ({pagination?.total || 0}{" "}
+                users)
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -478,23 +507,12 @@ export default function UsersPage() {
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className={currentPage !== page ? "bg-transparent" : ""}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="bg-transparent"
                 >
@@ -515,16 +533,20 @@ export default function UsersPage() {
               <DialogHeader>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={selectedUser.avatar || "/placeholder.svg"} />
+                    <AvatarImage
+                      src={selectedUser.avatar || "/placeholder.svg"}
+                    />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl">
                       {getInitials(selectedUser.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <DialogTitle className="text-xl">{selectedUser.name}</DialogTitle>
+                    <DialogTitle className="text-xl">
+                      {selectedUser.name}
+                    </DialogTitle>
                     <DialogDescription className="flex items-center gap-2 mt-1">
                       {getRoleBadge(selectedUser.role)}
-                      {getStatusBadge(selectedUser.status)}
+                      {getStatusBadge(selectedUser)}
                     </DialogDescription>
                   </div>
                 </div>
@@ -541,19 +563,24 @@ export default function UsersPage() {
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedUser.email}</span>
+                        <span>{selectedUser.email || "N/A"}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedUser.phone}</span>
+                        <span>{selectedUser.phone || "N/A"}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedUser.tenant}</span>
+                        <span>{getTenantName(selectedUser)}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>Joined {selectedUser.createdAt}</span>
+                        <span>
+                          Joined{" "}
+                          {selectedUser.created_at
+                            ? format(new Date(selectedUser.created_at), "PPP")
+                            : "N/A"}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -563,22 +590,39 @@ export default function UsersPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <Card>
                       <CardContent className="p-4 text-center">
-                        <p className="text-3xl font-bold text-primary">{selectedUser.ordersProcessed}</p>
-                        <p className="text-sm text-muted-foreground">Orders Processed</p>
+                        <p className="text-3xl font-bold text-primary">
+                          {selectedUser.ordersProcessed || 0}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Orders Processed
+                        </p>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
-                        <p className="text-3xl font-bold text-primary">{selectedUser.invoicesCreated}</p>
-                        <p className="text-sm text-muted-foreground">Invoices Created</p>
+                        <p className="text-3xl font-bold text-primary">
+                          {selectedUser.invoicesCreated || 0}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Invoices Created
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Last Login</span>
-                        <span className="font-medium">{selectedUser.lastLogin}</span>
+                        <span className="text-muted-foreground">
+                          Last Login
+                        </span>
+                        <span className="font-medium">
+                          {selectedUser.last_login
+                            ? formatDistanceToNow(
+                                new Date(selectedUser.last_login),
+                                { addSuffix: true }
+                              )
+                            : "Never"}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -587,8 +631,18 @@ export default function UsersPage() {
 
               <div className="flex gap-2 mt-4">
                 <Button className="flex-1">Edit User</Button>
-                <Button variant="outline" className="flex-1 bg-transparent">
-                  Send Message
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                  onClick={() => {
+                    handleStatusChange(
+                      selectedUser._id || selectedUser.id,
+                      !selectedUser.is_active
+                    );
+                    setDialogOpen(false);
+                  }}
+                >
+                  {selectedUser.is_active ? "Deactivate" : "Activate"}
                 </Button>
               </div>
             </>
@@ -600,7 +654,9 @@ export default function UsersPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>Create a new user account for a tenant.</DialogDescription>
+            <DialogDescription>
+              Create a new user account for a tenant.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -610,7 +666,9 @@ export default function UsersPage() {
                 id="user-name"
                 placeholder="Enter full name"
                 value={newUser.name}
-                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, name: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -620,7 +678,9 @@ export default function UsersPage() {
                 type="email"
                 placeholder="user@company.com"
                 value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, email: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -630,43 +690,72 @@ export default function UsersPage() {
                 type="tel"
                 placeholder="+91 98765 43210"
                 value={newUser.phone}
-                onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, phone: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="user-tenant">Tenant / Business</Label>
+              <Label htmlFor="user-tenant">Tenant ID</Label>
               <Input
                 id="user-tenant"
-                placeholder="Enter tenant name"
+                placeholder="Enter tenant ID"
                 value={newUser.tenant}
-                onChange={(e) => setNewUser({ ...newUser, tenant: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, tenant: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-role">Role</Label>
-              <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+              <Select
+                value={newUser.role}
+                onValueChange={(value) =>
+                  setNewUser({ ...newUser, role: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Owner">Owner</SelectItem>
-                  <SelectItem value="Manager">Manager</SelectItem>
-                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="owner">Owner</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddUserOpen(false)} className="bg-transparent">
+            <Button
+              variant="outline"
+              onClick={() => setAddUserOpen(false)}
+              className="bg-transparent"
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddUser} disabled={!newUser.name || !newUser.email || !newUser.tenant}>
-              Add User
+            <Button
+              onClick={handleAddUser}
+              disabled={
+                !newUser.name ||
+                !newUser.email ||
+                !newUser.tenant ||
+                isAddingUser
+              }
+            >
+              {isAddingUser ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add User"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
