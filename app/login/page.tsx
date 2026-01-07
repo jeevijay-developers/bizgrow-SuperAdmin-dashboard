@@ -149,7 +149,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          © 2025 BizGrow360. All rights reserved.
+          © {new Date().getFullYear()} BizGrow360. All rights reserved.
         </p>
       </div>
     </div>
