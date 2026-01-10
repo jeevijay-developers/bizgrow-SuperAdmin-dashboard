@@ -247,10 +247,10 @@ export default function UsersPage() {
             Manage users across all tenants
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setAddUserOpen(true)}>
+        {/* <Button className="gap-2" onClick={() => setAddUserOpen(true)}>
           <Plus className="h-4 w-4" />
           Add User
-        </Button>
+        </Button> */}
         <Button
           variant="outline"
           size="sm"
@@ -320,7 +320,7 @@ export default function UsersPage() {
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-35">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -331,7 +331,7 @@ export default function UsersPage() {
                 </SelectContent>
               </Select>
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-35">
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
